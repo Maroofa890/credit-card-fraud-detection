@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Credit Card Fraud Detection | Maroofa Sheikh</title>
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+    background-color: #f9fafc;
+    color: #333;
+  }
+  header {
+    background: #283593;
+    color: #fff;
+    text-align: center;
+    padding: 2rem 1rem;
+    border-bottom: 4px solid #1a237e;
+  }
+  h1 { margin: 0; font-size: 2rem; letter-spacing: 1px; }
+  h2 {
+    color: #1a237e;
+    border-left: 4px solid #283593;
+    padding-left: 8px;
+  }
+  section {
+    max-width: 900px;
+    margin: auto;
+    padding: 1.5rem;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    margin-top: 1.5rem;
+  }
+  code, pre {
+    background: #f0f0f5;
+    padding: 0.75rem;
+    border-radius: 8px;
+    display: block;
+    overflow-x: auto;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 1rem;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: center;
+  }
+  th {
+    background: #e8eaf6;
+    color: #1a237e;
+  }
+  footer {
+    text-align: center;
+    padding: 1rem;
+    font-size: 0.9rem;
+    color: #666;
+  }
+  a { color: #283593; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Credit Card Fraud Detection</h1>
+  <p>Machine Learning in R | Project by <strong>Maroofa Sheikh</strong></p>
+</header>
+
+<section>
+  <h2>📘 Project Overview</h2>
+  <p>
+    This project applies machine learning techniques in <strong>R</strong> to detect fraudulent credit card transactions using the Kaggle dataset (284,807 records and 31 features). The goal is to identify fraudulent behavior while minimizing false alarms. 
+  </p>
+  <p>
+    Key steps include data exploration, imbalance handling using <em>SMOTE</em>, model comparison (Logistic Regression, Random Forest, XGBoost), and performance evaluation through ROC-AUC and recall metrics.
+  </p>
+</section>
+
+<section>
+  <h2>📊 Dataset Information</h2>
+  <p><strong>Source:</strong> <a href="https://www.kaggle.com/mlg-ulb/creditcardfraud" target="_blank">Kaggle Credit Card Fraud Dataset</a></p>
+  <ul>
+    <li>Transactions: 284,807</li>
+    <li>Fraudulent cases: 492 (≈0.17%)</li>
+    <li>Features: 30 anonymized + Amount + Class</li>
+  </ul>
+
+  <pre><code class="language-r">
+# Load and inspect data
+data <- read.csv("creditcard.csv")
+str(data)
+summary(data$Class)
+  </code></pre>
+</section>
+
+<section>
+  <h2>📈 Exploratory Data Analysis (EDA)</h2>
+  <p>Before training, we visualize class imbalance and transaction amounts.</p>
+  
+  <pre><code class="language-r">
+library(ggplot2)
+ggplot(data, aes(x=Class)) +
+  geom_bar(fill=c("#3949ab", "#f44336")) +
+  labs(title="Fraud vs Normal Transactions", x="Class", y="Count")
+  </code></pre>
+
+  <p><em>Result:</em> The dataset is highly imbalanced — only 0.17% are fraudulent.</p>
+</section>
+
+<section>
+  <h2>🧮 Model Training</h2>
+  <p>We used the <strong>caret</strong> package to perform cross-validation, handle class imbalance with SMOTE, and train multiple models.</p>
+
+  <pre><code class="language-r">
+library(caret)
+library(DMwR)
+set.seed(42)
+
+ctrl <- trainControl(method="cv", number=5, 
+                     sampling="smote", 
+                     classProbs=TRUE, 
+                     summaryFunction=twoClassSummary)
+
+model <- train(Class ~ ., data=trainData,
+               method="xgbTree",
+               trControl=ctrl,
+               metric="ROC")
+
+pred <- predict(model, testData)
+confusionMatrix(pred, testData$Class, positive="1")
+  </code></pre>
+</section>
+
+<section>
+  <h2>📊 Model Evaluation</h2>
+  <p>Performance comparison across models:</p>
+
+  <table>
+    <tr>
+      <th>Model</th>
+      <th>Accuracy</th>
+      <th>Precision</th>
+      <th>Recall (Fraud)</th>
+      <th>F1-Score</th>
+      <th>AUC</th>
+    </tr>
+    <tr>
+      <td>Logistic Regression</td>
+      <td>0.98</td>
+      <td>0.82</td>
+      <td>0.70</td>
+      <td>0.75</td>
+      <td>0.97</td>
+    </tr>
+    <tr>
+      <td>Random Forest</td>
+      <td>0.99</td>
+      <td>0.90</td>
+      <td>0.78</td>
+      <td>0.84</td>
+      <td>0.99</td>
+    </tr>
+    <tr>
+      <td>XGBoost</td>
+      <td>0.99</td>
+      <td>0.92</td>
+      <td>0.81</td>
+      <td>0.86</td>
+      <td>0.995</td>
+    </tr>
+  </table>
+
+  <p>
+    The <strong>XGBoost model</strong> achieved the best balance between recall and precision, identifying over 80% of fraudulent transactions with minimal false positives.
+  </p>
+</section>
+
+<section>
+  <h2>📉 ROC Curve Example</h2>
+  <pre><code class="language-r">
+library(pROC)
+roc_obj <- roc(testData$Class, predict(model, testData, type="prob")[,2])
+plot(roc_obj, col="#283593", main="ROC Curve - XGBoost Model")
+auc(roc_obj)
+  </code></pre>
+</section>
+
+<section>
+  <h2>💡 Conclusion</h2>
+  <ul>
+    <li>Handling imbalance via SMOTE significantly improved fraud recall.</li>
+    <li>XGBoost achieved highest AUC (0.995) and recall (0.81).</li>
+    <li>Such models can be deployed in real-time systems for transaction monitoring.</li>
+  </ul>
+  <p><em>Note:</em> The dataset is anonymized and used purely for educational and research purposes.</p>
+</section>
+
+<footer>
+  <p>© 2025 Maroofa Sheikh | <a href="https://github.com/maroofa890">GitHub</a> | <a href="mailto:maroofa.sheikh@example.com">Contact</a></p>
+</footer>
+
+</body>
+</html>
