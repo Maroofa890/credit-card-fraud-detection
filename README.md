@@ -26,7 +26,7 @@ R | caret | DMwR | ggplot2 | pROC | XGBoost
 [Kaggle Credit Card Fraud Dataset](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud)
 
 ## 🌐 Live Demo
-🔗 [View Project on GitHub Pages](https://maroofa890.github.io/credit-card-fraud/Credit-Card-Fraud-Detection.html)
+🔗 [View Project on GitHub Pages](https://maroofa890.github.io/credit-card-fraud-detection/)
 
 ## 📜 License
 This project is created for educational and research purposes. Dataset is anonymized.
